@@ -2,3 +2,4 @@ pdfplumber
 pdf2image
 Pillow
 python-pptx
+pytesseract
