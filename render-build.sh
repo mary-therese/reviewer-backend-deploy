@@ -2,9 +2,9 @@
 # Exit if any command fails
 set -o errexit  
 
-# Install Pandoc and Python
+# Update and install system packages
 apt-get update
-apt-get install -y pandoc python3 python3-pip
+apt-get install -y pandoc poppler-utils
 
 # Install Python packages
 pip3 install -r requirements.txt
