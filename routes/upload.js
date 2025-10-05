@@ -4,7 +4,7 @@ import { handlePdfUpload, handlePptxUpload, handleDocxUpload } from '../controll
 
 const router = express.Router();
 
-// Multer config – store in /tmp with original filename
+// Multer /tmp with original filename
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, './tmp'),
   filename: (req, file, cb) => cb(null, file.originalname)
