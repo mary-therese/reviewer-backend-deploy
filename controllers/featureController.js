@@ -184,63 +184,51 @@ Output format (strict JSON only):
 if (featureType === 'acronym') {
   // Step 0: GPT-based markdown cleaning/restructuring
   const step0SystemPrompt = `
-You are an expert Markdown formatting assistant.
+You are an expert Markdown structuring assistant for educational material.
 
-Task:
-- Take the raw text provided below.
-- Clean and structure it into Markdown **with strict rules**:
+Goal:
+Transform the raw educational text into clean, semantically structured Markdown that clearly separates conceptual groups and subtopics.
 
-Formatting Rules:
-1. Each group of terms must have a group title starting with '## '.
-2. Terms under a group must be a bullet list using '- '.
-3. Explanations, definitions, or extra descriptive text should remain as plain paragraphs under the group title, **not in the bullets**.
-4. Keep the order of terms as in the original text.
-5. Do not merge, paraphrase, or remove terms.
-6. Remove any extra numbering, messy line breaks, or unrelated content.
-7. Maintain proper spacing: a blank line between the group title, explanation, and bullets.
-8. Do not add new content or explanations. Only clean and reformat what exists.
+Instructions:
 
-Additional Instructions:
-- A term is any short phrase or noun that represents a key concept or item. Explanations or definitions are full sentences or paragraphs and should not be converted into bullets.
-- Replace any messy symbols such as •, *, or numbered lists with standard '- ' bullets.
-- Ensure the first letter of each bullet is capitalized.
-- Even if a group has no explanation, leave a blank line after the group title.
+1. **Hierarchy & Headings**
+   - Use heading levels ("#", "##", "###") to represent conceptual hierarchy.
+   - "#" → Main topic (overall theme of the content)
+   - "##" → Distinct major groups or categories.
+   - "###" → Subtopics or conceptual subsets.
+   - If the text has no explicit headings, infer them logically from context or repeated patterns.
 
-Example
-Messy Raw Input (literal extraction):
-"Integration models Integration models define how applications will be integrated by specifying mechanisms
-Presentation Integration typically used to create a new UI
-• Data Integration managed and stored for reusing or synchronizing data
+2. **Semantic Grouping**
+   - Group related terms or concepts under meaningful "##" or "###" headings.
+   - If a list of terms shares a common theme, infer a suitable subheading to describe that group.
+   - Do not merge conceptually different categories into one heading.
+   - Preserve order when possible, but prioritize conceptual clarity.
 
-Security models Authentication verifies user identity
-Authorization Grants access based on permissions"
+3. **List Formatting**
+   - Represent each discrete concept, item, or definition as a bullet ("-").
+   - If a term is followed by a short explanation (e.g., “Term: definition”), keep it inline after a colon.
+   - If the explanation is long (a full sentence or paragraph), place it below the bullet as plain text.
 
-Notes on messiness:
-- No proper headings for groups.
-- Terms not consistently bulleted or numbered.
-- Explanations are mixed with terms.
-- Some bullets use weird symbols (•).
-- Line breaks inconsistent.
+4. **Clarity Rules**
+   - Remove numbering, inconsistent bullets (•, *, 1.), and unnecessary line breaks.
+   - Keep only educationally relevant content — discard headers/footers, page numbers, table of contents markers, etc.
+   - Maintain blank lines between headings, explanations, and lists for readability.
 
-Expected GPT Output (strict, predictable markdown):
-"## Integration models
+5. **Inference Rules**
+   - You may create or adjust headings when they improve clarity or reflect an implicit grouping.
+   - Never invent new educational content; only organize what’s already present.
+   - Avoid placing unrelated subtopics under the same heading.
 
-Integration models define how applications will be integrated by specifying mechanisms.
+6. **Tone & Fidelity**
+   - Preserve all terms and explanations exactly as written — no paraphrasing or abbreviation.
+   - The output must remain factually identical to the source.
+   - Do not remove any educational content.
 
-- Presentation Integration: Typically used to create a new UI
-- Data Integration: Managed and stored for reusing or synchronizing data
+---
 
-## Security models
+Clean and restructure the following content according to the above rules.
+Do not add commentary or explanations — only Markdown.
 
-- Authentication: Verifies user identity
-- Authorization: Grants access based on permissions"
-
-What changed:
-- ## added for group titles.
-- Explanatory sentence preserved as paragraph.
-- All terms normalized to - bullets.
-- Weird symbols removed, capitalization standardized.
-- Order preserved.
 
 `;
 
@@ -249,7 +237,7 @@ What changed:
   const step0Output = await generateWithGPT({
     userPrompt: step0UserPrompt,
     systemPrompt: step0SystemPrompt,
-    temperature: 0
+    temperature: 0.3
   });
 
   console.log("[acronym Step0] Raw GPT Output:\n", step0Output);
@@ -267,24 +255,170 @@ What changed:
 
   // Step 1: Extract terms/groups
   const step1SystemPrompt = `
-You are an academic assistant helping students prepare for exams.
+You are an academic assistant extracting structured terms and concept groups from educational Markdown that will be turned to acronyms sooner.
 
-Tasks:
-1. From the provided Markdown (cleaned by Step 1), extract only items from bulleted lists that contain a clear term or concept.
-- If a bullet has the form Term: definition or Term – definition, the term is only the part before the colon or dash.
-- If a bullet is a single word or short phrase (less than 20 words), consider that the term.
-- Ignore bullets that are purely descriptive sentences, repeated explanations, or notes.
-- Ignore terms that are strings of special characters, formatting artifacts, code snippets, or non-text elements.
-- Only include meaningful, educational concepts useful for exam revision.
+Goal:
+From the provided Markdown, identify and organize all *educational terms* (key concepts, models, levels, stages, components, etc.) that are relevant for exam memorization or concept recall— the kind students could later use to form acronyms.
 
-2. Create group titles based on the "##" headings that immediately precede the lists.
-- If no heading exists, create one based on its terms.
+You need to prepare students for enumeration-type questions. Therefore, you should extract key terms or concepts that are commonly asked in exams and quizzes requiring enumeration.
+As a guide, below are example exam scenarios by subject area:
+1. Science (Biology)
 
-3. Only include groups that contain 2 or more extracted terms.
+Question:
+Enumerate the parts of a plant cell.
 
-4. Organize the extracted terms into groups using the created group titles.
+Expected Answer:
+- Cell wall
+- Cell membrane
+- Cytoplasm
+- Nucleus
+- Chloroplast
+- Vacuole
+- Mitochondria
 
-5. Do not create acronyms, mnemonics, or new terms — only extract what is explicitly present in the Markdown.
+2. Mathematics
+
+Question:
+Enumerate the properties of real numbers.
+
+Expected Answer:
+- Closure property
+- Commutative property
+- Associative property
+- Distributive property
+- Identity property
+- Inverse property
+
+3. Social Studies / History
+
+Question:
+Enumerate the causes of World War II.
+
+Expected Answer:
+- Treaty of Versailles
+- Rise of Fascism and Nazism
+- Expansionism of Germany, Italy, and Japan
+- Failure of the League of Nations
+- Economic instability from the Great Depression
+
+4. English / Literature
+
+Question:
+Enumerate the elements of a short story.
+
+Expected Answer:
+- Plot
+- Characters
+- Setting
+- Theme
+- Conflict
+- Point of view
+
+5. Computer Science
+
+Question:
+Enumerate the basic components of a computer system.
+
+Expected Answer:
+- Input devices
+- Output devices
+- Central processing unit (CPU)
+- Memory / Storage devices
+- Software
+
+6. Business / Economics
+
+Question:
+Enumerate the factors of production.
+
+Expected Answer:
+- Land
+- Labor
+- Capital
+- Entrepreneurship
+
+7. Health / Nursing
+
+Question:
+Enumerate the stages of infection.
+
+Expected Answer:
+- Incubation period
+- Prodromal stage
+- Illness stage
+- Convalescence stage
+
+8. Religion / Values Education
+
+Question:
+Enumerate the Ten Commandments.
+
+Expected Answer:
+- You shall have no other gods before Me.
+- You shall not make idols.
+- You shall not take the Lord’s name in vain.
+- Remember the Sabbath day.
+- Honor your father and mother.
+- You shall not kill.
+- You shall not commit adultery.
+- You shall not steal.
+- You shall not bear false witness.
+- You shall not covet.
+
+
+
+
+
+NOTE: After groupings, extract the titles in the list of groups and turn them into additional groups in the json.
+Example list of groups:
+{
+  "title": "Theories of Learning",
+  "groups": [
+    {
+      "id": "q1",
+      "title": "Behaviorism",
+      "terms": ["Classical Conditioning", "Operant Conditioning", "Stimulus–Response Model"]
+    },
+    {
+      "id": "q2",
+      "title": "Cognitivism",
+      "terms": ["Information Processing Theory", "Schema Theory", "Cognitive Load Theory"]
+    },
+    {
+      "id": "q3",
+      "title": "Constructivism",
+      "terms": ["Discovery Learning", "Social Constructivism", "Situated Learning"]
+    },
+    {
+      "id": "q4",
+      "title": "Humanism",
+      "terms": ["Maslow’s Hierarchy of Needs", "Rogers’ Self-Directed Learning"]
+    }
+  ]
+}
+
+Expected output to add in the list of groups:
+{
+  "title": "Collective Learning Theories",
+  "groups": [
+    {
+      "id": "q5",
+      "title": "Collective Learning Theories",
+      "terms": ["Behaviorism", "Cognitivism", "Constructivism", "Humanism"]
+    }
+  ]
+}
+
+Important Guidelines:
+- Exclude any empty groups or groups that contain no valid concepts.
+- Remove examples, explanations, table descriptions, or illustrative notes that are not actual terms.
+- Exclude any text fragments containing excessive punctuation, numbering, or special characters.
+- Focus only on concise, clearly definable concepts that are educationally meaningful — specifically, those that students could later use for acronyms or mnemonics.
+- Evaluate whether headings themselves qualify as valid terms; include them only if they do.
+- Include the terms from the sub-topics.
+- Do not invent, infer, or generate new terms, acronyms, or mnemonics — extract only what is explicitly stated in the Markdown source.
+- Group related terms logically based on the overall context of the content.
+- Preserve the natural order of appearance from the original content.
 
 Return strict JSON only in this format:
 {
@@ -298,10 +432,6 @@ Return strict JSON only in this format:
   ]
 }
 
-Important:
-- Filter out empty or single-term groups.
-- Exclude examples, illustrative notes, code outputs, and special characters.
-- Only include definable concepts useful for exam revision.
 
 
 
