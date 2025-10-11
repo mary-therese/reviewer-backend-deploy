@@ -3,9 +3,7 @@ import { simulateRes } from '../utils/simulateRes.js';
 import { postprocessMarkdown } from '../utils/postprocessMarkdown.js';
 import { generateWithGPT } from '../utils/generateWithGPT.js';
 
-// -------------------------
 // Counter Meta on Firestore - ID Gen
-// ---------------------
 const updateCounterAndGetId = async (uid, folderId, prefix) => {
   const metaRef = db.collection('users').doc(uid).collection('meta').doc('counters');
   await db.runTransaction(async (transaction) => {
@@ -38,9 +36,8 @@ const updateCounterAndGetId = async (uid, folderId, prefix) => {
 
 
 
-// -------------------------
+
 // Helper: remove ```json or ``` fences from GPT output
-// -------------------------
 function stripFenced(text) {
   if (!text) return '';
   return text.replace(/```json\s*/gi, '')  // remove opening ```json
@@ -49,9 +46,8 @@ function stripFenced(text) {
 }
 
 
-//-------------------------
-// Feature Processor / Prompting
-// ---------------------
+
+// Feature Prompting
 async function processFeature(req, res, featureType) {
   try {
     const uid = req.user.uid;
@@ -178,9 +174,7 @@ Output format (strict JSON only):
 
     let parsed;
 
-    // --------------------------
     // Two-step flow for Acronym // Updated now four steps 0-3 (09/22)
-    // ----------------------
 if (featureType === 'acronym') {
   // Step 0: GPT-based markdown cleaning/restructuring
   const step0SystemPrompt = `
@@ -366,9 +360,6 @@ Expected Answer:
 - You shall not covet.
 
 
-
-
-
 NOTE: After groupings, extract the titles in the list of groups and turn them into additional groups in the json.
 Example list of groups:
 {
@@ -431,8 +422,6 @@ Return strict JSON only in this format:
     }
   ]
 }
-
-
 
 
 `;
@@ -517,7 +506,7 @@ Return only valid JSON.
     return res.status(500).json({ error: `Invalid GPT Step2 output for acronym` });
   }
 
-  // Comment this out to enable Step 3 validation (09/22)
+// Comment this out to enable Step 3 validation (09/22)
   parsed = step2Parsed;
 // 
 
@@ -606,9 +595,7 @@ Return only valid JSON.
 
 
 } else if (featureType === 'terms') {
-  // --------------------------
   // Two-step flow for Terms
-  // --------------------------
   const step1SystemPrompt = `
 You are an academic assistant.
 
@@ -707,9 +694,7 @@ Rules:
   }
 
 } else {
-  // --------------------------
   // Single-step flow for summarize/explain
-  // --------------------------
   const userPrompt = `Content to process:\n---\n${markdown}\n---`;
 
   const gptOutput = await generateWithGPT({ userPrompt, systemPrompt, temperature });
@@ -727,9 +712,7 @@ Rules:
 }
 
 
-    // ---------------------
     // Firestore Saving
-    // ---------------------
     const reviewerRef = db
       .collection('users')
       .doc(uid)
@@ -784,9 +767,8 @@ Rules:
       }
     }
 
-    // --------------------
+  
     // Return consistent response
-    // -------------------------
     res.json({ reviewers: [{ id: reviewerId, ...parsed }] });
 
   } catch (err) {
@@ -795,9 +777,8 @@ Rules:
   }
 }
 
-// --------------
+
 // Exported Feature Functions
-// -------------------------
 export const acronymFeature = (req, res) => processFeature(req, res, 'acronym');
 export const termsFeature = (req, res) => processFeature(req, res, 'terms');
 export const summarizeFeature = (req, res) => processFeature(req, res, 'summarize');
