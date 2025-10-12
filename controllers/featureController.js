@@ -159,8 +159,22 @@ Output format (strict JSON only):
     if (!markdown && req.file) markdown = await simulateRes(req.file.path, req.file.mimetype);
 
     if (!markdown) {
-      return res.status(400).json({ error: 'No content to process' });
+      return res.status(400).send('No content to process. Please try again.');
     }
+
+    // Added error handling if text content is too short.
+    const cleanedText = markdown.trim();
+
+    const wordCount = cleanedText.split(/\s+/).length;
+    if (wordCount < 20) {  
+      return res.status(400).send('The text is too short or meaningless for this feature. Please provide more substantial content.');
+    }
+
+    const letters = cleanedText.replace(/[^a-zA-Z]/g, '');
+    if (letters.length < 50) {
+      return res.status(400).send('The text does not contain enough meaningful content for this feature.');
+    }
+    // ends here
 
     // Postprocess onli for summarize/explain
     if (['summarize', 'explain'].includes(featureType)) {

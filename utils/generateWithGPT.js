@@ -50,7 +50,7 @@ console.log('Estimated prompt tokens:', promptTokens); // For vieweing the estim
 
 if (promptTokens >= MAX_INPUT_TOKENS) {
   throw new Error(
-    `File exceeds the allowable number of characters. Please reduce the text content and try again.`
+    `Text content is too large (max ~416,000 characters). Please reduce the content and try again.`
   );
 }
 
@@ -75,7 +75,8 @@ if (promptTokens >= MAX_INPUT_TOKENS) {
     return response.choices[0]?.message?.content?.trim() || '';
   } catch (error) {
     console.error('[GPT ERROR]', error);
-    throw new Error(error?.message || 'Failed to generate content with GPT.');
+    throw new Error(`[GPT ERROR] ${error?.message || 'Failed to generate content with GPT.'}`);
+
   }
 }
 
