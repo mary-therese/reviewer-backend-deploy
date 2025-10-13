@@ -20,7 +20,7 @@ const updateCounterAndGetId = async (uid, folderId, prefix) => {
 
   const counterField = {
     AcronymMnemonics: 'acronymCounter',
-    TermsAndCondition: 'termCounter',
+    TermsAndDefinitions: 'termCounter',
     SummarizedReviewers: 'summarizationCounter',
     SummarizedAIReviewers: 'aiCounter'
   }[folderId];
@@ -61,7 +61,7 @@ async function processFeature(req, res, featureType) {
         break;
 
       case 'terms':
-        folderId = 'TermsAndCondition';
+        folderId = 'TermsAndDefinitions';
         prefix = 'td';
         break;
 
