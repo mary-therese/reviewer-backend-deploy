@@ -83,7 +83,7 @@ Task:
 Output format (strict JSON only):
 
 {
-  "title": "<Overall title of the content>",
+  "title": "<Concise overall title of the content>",
   "sections": [
     {
       "title": "<Section title>",
@@ -126,7 +126,7 @@ Task:
 Output format (strict JSON only):
 
 {
-  "title": "<Overall title of the content>",
+  "title": "<Concise overall title of the content>",
   "sections": [
     {
       "title": "<Section title>",
@@ -167,12 +167,12 @@ Output format (strict JSON only):
 
     const wordCount = cleanedText.split(/\s+/).length;
     if (wordCount < 20) {  
-      return res.status(400).send('The text is too short or meaningless for this feature. Please provide more substantial content.');
+      return res.status(400).send('The text content is too short or meaningless for this feature.');
     }
 
     const letters = cleanedText.replace(/[^a-zA-Z]/g, '');
     if (letters.length < 50) {
-      return res.status(400).send('The text does not contain enough meaningful content for this feature.');
+      return res.status(400).send('The text content is too short or meaningless for this feature.');
     }
     // ends here
 
@@ -427,7 +427,7 @@ Important Guidelines:
 
 Return strict JSON only in this format:
 {
-  "title": "<Overall title>",
+  "title": "<Concise overall title>",
   "groups": [
     {
       "id": "q1",
@@ -478,7 +478,7 @@ You are an academic assistant generating acronyms and mnemonic sentences from JS
 
 
 {
-  "title": "<Overall title>",
+  "title": "<Concise overall title>",
   "acronymGroups": [
     {
       "id": "q1",
@@ -626,7 +626,7 @@ Tasks:
 Return strict JSON in this format:
 
 {
-  "title": "<Overall title>",
+  "title": "<Concise overall title>",
   "questions": [
     {
       "id": "q1",
@@ -672,7 +672,7 @@ Rules:
 - Return strict JSON in this schema:
 
 {
-  "title": "<Overall title of the content>",
+  "title": "<Concise overall title of the content>",
   "questions": [
     {
       "id": "q1",
