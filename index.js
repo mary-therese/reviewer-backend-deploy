@@ -24,37 +24,27 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      console.log('Incoming Origin:', origin);
-      if (!origin) {
-  
-        return callback(null, true);
-      }
-      const allowedOrigins = [
-        'http://localhost:5173', 
-        'https://revio-web-ebon.vercel.app/', 
-      ];
-      if (allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        console.warn('Blocked Origin:', origin);
-        callback(new Error('CORS not allowed for this origin'));
-      }
-    },
-    credentials: true,
-  })
-);
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  next();
+});
 
+app.use((req, res, next) => {
+  if (req.method === 'OPTIONS') {
+    res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    return res.sendStatus(200);
+  }
+  next();
+});
 
 
 app.use(express.json());
 
-app.use((req, res, next) => {
-  console.log("Incoming Origin:", req.headers.origin);
-  next();
-});
+
 
 
 //Added part 09-23
