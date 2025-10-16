@@ -10,6 +10,6 @@ set -o errexit
 pip3 install -r requirements.txt
 
 # Install Node.js packages (optional, Render usually does this already)
-# npm install
+npm install
 
-npm install --legacy-peer-deps
+# npm install --legacy-peer-deps
