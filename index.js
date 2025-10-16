@@ -33,7 +33,7 @@ app.use(cors({
 
     const allowedOrigins = [
       "http://localhost:5173",
-      "https://revio-web-ebon.vercel.app",
+      "https://revio-web-ebon.vercel.app/Main/Create",
     ];
 
     if (allowedOrigins.includes(origin) || /\.vercel\.app$/.test(origin)) {
