@@ -521,90 +521,125 @@ Return only valid JSON.
   }
 
 // Comment this out to enable Step 3 validation (09/22)
-  parsed = step2Parsed;
+  //parsed = step2Parsed;
 // 
 
 //Uncomment below to enable Step 3 validation if you want to include step 3 again. (09/22)
-//  Step 3: Validation & Finalization
-//   const step3SystemPrompt = `
-// You are a validator and corrector for acronym mnemonics. Follow these rules strictly:
+// Step 3: Validation & Finalization
+  const step3SystemPrompt = `
+You are a validator and corrector for acronym mnemonics. Follow these rules strictly:
 
-// 1. Letter Accuracy:
-// - Each "letter" field must exactly match the first character of the corresponding "word".
-// - Correct any mismatches; do not remove or change any terms.
+1. Letter Accuracy:
+- Each "letter" field must exactly match the first character of the first word in the corresponding entry; if it’s a compound word, only use the first word for reference.
+- Correct any mismatches; do not remove or change any terms.
 
-// 2. Mnemonic Sentence (keyPhrase) Accuracy:
-// - The "keyPhrase" must have exactly one word for each letter, in order.
-// - Each word in the sentence must start with the corresponding "letter", including repeated letters.
-// - Do not skip, merge, or omit any letters.
-// - The words can relate to the meaning of the terms but must not repeat the terms themselves.
-// - If a meaningful word cannot be found for a letter, use a generic placeholder starting with that letter.
+2. Mnemonic Sentence (keyPhrase) Accuracy:
+- The "keyPhrase" must have exactly one word per letter, in order. For compound words, count only the first word.
+- Each word in the sentence must start with the corresponding "letter", including repeated letters.
+- Do not skip, merge, or omit any letters.
+- The words can relate to the meaning of the terms but must not repeat the terms themselves.
+- If a meaningful word cannot be found for a letter, use a generic placeholder starting with that letter.
 
-// 3. Preserve Terms and Order:
-// - Do not change the "word" fields or their order.
-// - Only correct the "letter" and "keyPhrase" fields as needed.
-// - If a field in "letter" matches the "keyPhase" field, leave it unchanged (preserve as is).
+3. Preserve Terms and Order:
+- Do not change the "word" fields or their order.
+- Only correct the "letter" and "keyPhrase" fields as needed.
+- If a field in "letter" matches the "keyPhase" field, leave it unchanged (preserve as is).
 
-// 4. Output Format:
-// - Return only valid JSON with the exact same schema as input.
-// - Maintain all other fields exactly as in the input.
+4. Output Format:
+- Return only valid JSON with the exact same schema as input.
+- Maintain all other fields exactly as in the input.
 
-// Example Correction
-// Input (problematic):
-// {
-//   "keyPhrase": "Smart Tech Operates Rapidly",
-//   "title": "Software Components",
-//   "contents": [
-//     { "letter": "S", "word": "Server" },
-//     { "letter": "T", "word": "Thread Pool" },
-//     { "letter": "O", "word": "Operating System" },
-//     { "letter": "R", "word": "Router" },
-//     { "letter": "R", "word": "Registry" }
-//   ]
-// }
-// Problem:
-// - The original keyPhrase has only one “R” word (Rapidly) but there are two “R” letters in the contents.
+Example Correction #1
+Input (problematic):
+{
+  "keyPhrase": "Smart Tech Operates Rapidly",
+  "title": "Software Components",
+  "contents": [
+    { "letter": "S", "word": "Server" },
+    { "letter": "T", "word": "Thread Pool" },
+    { "letter": "O", "word": "Operating System" },
+    { "letter": "R", "word": "Router" },
+    { "letter": "R", "word": "Registry" }
+  ]
+}
+Problem:
+- The original keyPhrase has only one “R” word (Rapidly) but there are two “R” letters in the contents.
 
-// Corrected Output:
-// {
-//   "keyPhrase": "Smart Tech Operates Rapidly Reliably",
-//   "title": "Software Components",
-//   "contents": [
-//     { "letter": "S", "word": "Server" },
-//     { "letter": "T", "word": "Thread Pool" },
-//     { "letter": "O", "word": "Operating System" },
-//     { "letter": "R", "word": "Router" },
-//     { "letter": "R", "word": "Registry" }
-//   ]
-// }
-// Explanation of the correction:
-// - Each word in keyPhrase now corresponds exactly to the letter of the term.
-// - Both "R" entries are preserved and reflected in the mnemonic.
-// - Order of terms is maintained.
-// - No letters or terms are skipped, merged, or altered.
+Corrected Output:
+{
+  "keyPhrase": "Smart Tech Operates Rapidly Reliably",
+  "title": "Software Components",
+  "contents": [
+    { "letter": "S", "word": "Server" },
+    { "letter": "T", "word": "Thread Pool" },
+    { "letter": "O", "word": "Operating System" },
+    { "letter": "R", "word": "Router" },
+    { "letter": "R", "word": "Registry" }
+  ]
+}
 
-// `;
+Explanation of the correction in example correct #1:
+- Each word in keyPhrase now corresponds exactly to the letter of the term.
+- Both "R" entries are preserved and reflected in the mnemonic.
+- Order of terms is maintained.
+- No letters or terms are skipped, merged, or altered.
 
-//   const step3UserPrompt = `
-// Here is the generated JSON from Step 2:
-// ${JSON.stringify(step2Parsed, null, 2)}
-// `;
+Example Correction #2
+Input (problematic):
+{
+  "keyPhrase": "Silly Ants Playfully Paint In Colorful Caves",
+  "title": "Requirements of a Professional",
+  "contents": [
+    { "letter": "S", "word": "Specialized knowledge" },
+    { "letter": "A", "word": "Autonomy" },
+    { "letter": "P", "word": "Professional code" },
+    { "letter": "P", "word": "Personal code" },
+    { "letter": "I", "word": "Institutional code" },
+    { "letter": "C", "word": "Community code" }
+  ]
+}
 
-//   const step3Output = await generateWithGPT({
-//     userPrompt: step3UserPrompt,
-//     systemPrompt: step3SystemPrompt,
-//     temperature: 0
-//   });
+Corrected Output:
+{
+  "keyPhrase": "Silly Ants Playfully Paint In Colorful",
+  "title": "Requirements of a Professional",
+  "contents": [
+    { "letter": "S", "word": "Specialized knowledge" },
+    { "letter": "A", "word": "Autonomy" },
+    { "letter": "P", "word": "Professional code" },
+    { "letter": "P", "word": "Personal code" },
+    { "letter": "I", "word": "Institutional code" },
+    { "letter": "C", "word": "Community code" }
+  ]
+}
 
-//   console.log("[acronym Step3] Raw GPT Output:\n", step3Output);
+Explanation of the correction in example correction #2:
+- Each word in keyPhrase now corresponds exactly to the first letter of each term in contents, in order.
+- The overall order of terms remains consistent with the original.
+- No letters or terms were omitted, merged, or altered; only the extra word (“Caves”) was removed to ensure a one-to-one alignment.
 
-//   try {
-//     parsed = JSON.parse(step3Output.replace(/```json\s*/i, '').replace(/```$/, '').trim());
-//   } catch (err) {
-//     console.error(`[acronym Step3] Failed to parse JSON:`, err);
-//     console.error(`[acronym Step3] Raw Output:\n`, step3Output);
-//     parsed = step2Parsed; // fallback if validation fails
-//   }
+`;
+
+  const step3UserPrompt = `
+Here is the generated JSON from Step 2:
+${JSON.stringify(step2Parsed, null, 2)}
+`;
+
+  const step3Output = await generateWithGPT({
+    userPrompt: step3UserPrompt,
+    systemPrompt: step3SystemPrompt,
+    temperature: 0
+  });
+
+  console.log("[acronym Step3] Raw GPT Output:\n", step3Output);
+
+  try {
+    parsed = JSON.parse(step3Output.replace(/```json\s*/i, '').replace(/```$/, '').trim());
+  } catch (err) {
+    console.error(`[acronym Step3] Failed to parse JSON:`, err);
+    console.error(`[acronym Step3] Raw Output:\n`, step3Output);
+    parsed = step2Parsed; // fallback if validation fails
+  }
 
 
 
