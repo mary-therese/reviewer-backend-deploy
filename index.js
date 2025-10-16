@@ -24,18 +24,14 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
+// Middleware
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin) {
-      console.log("CORS: Allowing request with undefined origin");
-      return callback(null, true);
-    }
-
+    if (!origin) return callback(null, true);
     const allowedOrigins = [
       "http://localhost:5173",
-      "https://revio-web-ebon.vercel.app/Main/Create",
+      "https://revio-web-ebon.vercel.app",
     ];
-
     if (allowedOrigins.includes(origin) || /\.vercel\.app$/.test(origin)) {
       callback(null, true);
     } else {
@@ -47,6 +43,15 @@ app.use(cors({
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true,
 }));
+
+
+app.options('*', (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.sendStatus(200);
+});
+
 
 
 app.use(express.json());
