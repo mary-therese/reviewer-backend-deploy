@@ -1,3 +1,4 @@
+import os
 import sys
 import pdfplumber
 import json
@@ -6,6 +7,10 @@ from pdf2image import convert_from_path
 import pytesseract
 from pytesseract import Output
 from PIL import Image, ImageEnhance, ImageFilter
+
+# Use Render-friendly prebuilt Tesseract binary
+TESSERACT_PATH = os.path.join(os.path.dirname(__file__), "tesseract", "bin", "tesseract")
+pytesseract.pytesseract.tesseract_cmd = TESSERACT_PATH
 
 # Figure/nontextual caption detection
 def is_figure_caption(line):

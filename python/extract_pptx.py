@@ -2,6 +2,25 @@ import sys
 import json
 import re
 from pptx import Presentation
+import os
+import pytesseract
+
+# Use Render-friendly prebuilt Tesseract binary
+TESSERACT_PATH = os.path.join(os.path.dirname(__file__), "tesseract", "bin", "tesseract")
+pytesseract.pytesseract.tesseract_cmd = TESSERACT_PATH
+
+
+from PIL import Image
+import io
+
+def ocr_shape_image(shape):
+    try:
+        image_stream = io.BytesIO(shape.image.blob)
+        img = Image.open(image_stream).convert("L")  # grayscale
+        text = pytesseract.image_to_string(img, config="--psm 1")
+        return text.strip()
+    except Exception:
+        return ""
 
 def is_caption_like(text):
     if not text or len(text.strip()) > 100:
@@ -27,14 +46,19 @@ def extract_text_from_pptx(file_path):
 
             #note: add this prompt for revieweing captions before ignoring --> "Ignore lines starting with [Caption] unless they include relevant definitions or explanations."
             for shape in slide.shapes:
-                if hasattr(shape, "text"):
+    # Extract text if available
+                if hasattr(shape, "text") and shape.text.strip():
                     text = shape.text.strip()
-                    if not text:
-                        continue
                     if is_caption_like(text):
                         slide_text.append(f"[Caption] {text}")
                     else:
                         slide_text.append(text)
+    # OCR fallback for image-only shapes
+                elif hasattr(shape, "image"):
+                    text = ocr_shape_image(shape)
+                    if text:
+                        slide_text.append(text)
+
 
             if slide_text:
                 markdown += "\n\n" + "\n".join(slide_text)
