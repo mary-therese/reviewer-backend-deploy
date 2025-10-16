@@ -4,20 +4,16 @@ import re
 from pptx import Presentation
 import os
 import pytesseract
-
-# Use Render-friendly prebuilt Tesseract binary
-TESSERACT_PATH = os.path.join(os.path.dirname(__file__), "tesseract", "bin", "tesseract")
-pytesseract.pytesseract.tesseract_cmd = TESSERACT_PATH
-
-
 from PIL import Image
 import io
+import tesserocr
+
 
 def ocr_shape_image(shape):
     try:
         image_stream = io.BytesIO(shape.image.blob)
         img = Image.open(image_stream).convert("L")  # grayscale
-        text = pytesseract.image_to_string(img, config="--psm 1")
+        text = tesserocr.image_to_text(img)
         return text.strip()
     except Exception:
         return ""
