@@ -24,12 +24,6 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
-/import express from 'express';
-import cors from 'cors';
-
-const app = express();
-
-// Middleware
 app.use(
   cors({
     origin: (origin, callback) => {
