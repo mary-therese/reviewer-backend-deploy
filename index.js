@@ -39,7 +39,7 @@ app.use(cors({
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true, // allow cookies/auth headers if needed
+  credentials: true, 
 }));
 
 app.use(express.json());
