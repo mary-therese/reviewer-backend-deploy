@@ -25,17 +25,29 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(cors({
-    origin: [
-    "http://localhost:5173",
-    "https://revio-web-ebon.vercel.app",
-    "capacitor://localhost",
-    "http://localhost",
-    /\.vercel\.app$/, 
-  ],
+  origin: (origin, callback) => {
+    if (!origin) {
+      console.log("CORS: Allowing request with undefined origin");
+      return callback(null, true);
+    }
+
+    const allowedOrigins = [
+      "http://localhost:5173",
+      "https://revio-web-ebon.vercel.app",
+    ];
+
+    if (allowedOrigins.includes(origin) || /\.vercel\.app$/.test(origin)) {
+      callback(null, true);
+    } else {
+      console.log("CORS: Blocked origin:", origin);
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
-  credentials: false, 
+  credentials: true,
 }));
+
 
 app.use(express.json());
 
