@@ -25,8 +25,8 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware
 const allowedOrigins = [
-  'http://localhost:5173', 
-  'https://revio-web-ebon.vercel.app' 
+  "http://localhost:5173", 
+  "https://revio-web-ebon.vercel.app" 
 ];
 
 app.use(cors({
@@ -34,7 +34,8 @@ app.use(cors({
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      callback(new Error('Not allowed by CORS'));
+       console.log("Blocked by CORS:", origin);
+      callback(new Error("Not allowed by CORS"));
     }
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
