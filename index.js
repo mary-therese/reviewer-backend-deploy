@@ -20,13 +20,17 @@ if (!fs.existsSync('./tmp')) {
   fs.mkdirSync('./tmp');
 }
 
+const app = express();
+const PORT = process.env.PORT || 5000;
+
 const allowedOrigins = [
   process.env.VITE_API_URL || 'https://revio-web-ebon.vercel.app'
 ];
 
+// Middleware
 const corsOptions = {
   origin: function (origin, callback) {
-    if (!origin) return callback(null, true); 
+    if (!origin) return callback(null, true);
     if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
