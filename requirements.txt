@@ -1,7 +1,7 @@
 pdfplumber
-pdf2image
+# pdf2image
 Pillow
 python-pptx
-pytesseract
-tesserocr
-tesseract-ocr
+# pytesseract
+# tesserocr
+# tesseract-ocr
