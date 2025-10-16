@@ -4,3 +4,4 @@ Pillow
 python-pptx
 pytesseract
 tesserocr
+tesseract-ocr
