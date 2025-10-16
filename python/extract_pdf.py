@@ -6,9 +6,6 @@ from pdf2image import convert_from_path
 import pytesseract
 from pytesseract import Output
 from PIL import Image, ImageEnhance, ImageFilter
-import tesserocr
-
-
 
 # Figure/nontextual caption detection
 def is_figure_caption(line):
@@ -30,14 +27,13 @@ def preprocess_image(img):
     return img
 
 # OCR a specific PDF page using pytesseract and pdf2imgae . issue is some PDFs have no text layer. But this fallback won't work on pdfs with heavy graphics.
-def ocr_page(file_path, page_number):
+def ocr_page(file_path, page_number, psm=1):
     images = convert_from_path(file_path, first_page=page_number+1, last_page=page_number+1)
     if not images:
         return ""
     img = preprocess_image(images[0])
-    text = tesserocr.image_to_text(img)  # uses internal Tesseract binary
+    text = pytesseract.image_to_string(img, config=f"--psm {psm}")
     return text
-
 
 def extract_text_from_pdf(file_path):
     try:
