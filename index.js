@@ -24,7 +24,9 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 const allowedOrigins = [
-  process.env.VITE_API_URL || 'https://revio-web-ebon.vercel.app'
+  process.env.VITE_API_URL, 'https://revio-web-ebon.vercel.app',  
+  'http://localhost:5173', 'http://192.168.254.110:5173', 'capacitor://localhost', 
+  'http://localhost'
 ];
 
 // Middleware
@@ -72,9 +74,12 @@ app.use((req, res, next) => {
 
 
 // Server Start
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+// app.listen(PORT, () => {
+//   console.log(`Server running on port ${PORT}`);
+// });
+
+
+app.listen(PORT, '0.0.0.0', () => console.log(`Server running on port ${PORT}`));
 
 
 // Log errors on deploy issues fast
