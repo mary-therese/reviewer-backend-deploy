@@ -772,7 +772,7 @@ Rules:
 
     switch (featureType) {
       case 'acronym': {
-        await reviewerRef.set({ id: reviewerId, title: parsed.title || 'Untitled', createdAt: new Date() });
+        await reviewerRef.set({ id: reviewerId, title: parsed.title || 'Untitled', createdAt: new Date(), startDate: new Date() });
 
         const saveBatch = db.batch();
         for (const group of parsed.acronymGroups || []) {
@@ -789,7 +789,7 @@ Rules:
       }
 
       case 'terms': {
-        await reviewerRef.set({ id: reviewerId, title: parsed.title || 'Untitled', createdAt: new Date() });
+        await reviewerRef.set({ id: reviewerId, title: parsed.title || 'Untitled', createdAt: new Date(), startDate: new Date() });
 
         const saveBatch = db.batch();
         for (const q of parsed.questions || []) {
@@ -810,7 +810,7 @@ Rules:
 
       case 'summarize':
       case 'explain': {
-        const reviewerData = { id: reviewerId, reviewers: [parsed], createdAt: new Date() };
+        const reviewerData = { id: reviewerId, reviewers: [parsed], createdAt: new Date(), startDate: new Date() };
         await reviewerRef.set(reviewerData);
         break;
       }
