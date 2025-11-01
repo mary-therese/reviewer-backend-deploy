@@ -1,6 +1,7 @@
 import path from 'path';
 import { postprocessMarkdown } from '../utils/postprocessMarkdown.js';
 import { spawn } from 'child_process';
+import { extractPptxXml } from "../utils/extractPptxXml.js";
 
 
 export const handlePdfUpload = async (req, res, next) => {
@@ -39,39 +40,30 @@ export const handlePdfUpload = async (req, res, next) => {
 
 
 export const handlePptxUpload = async (req, res, next) => {
-  const filePath = req.file.path;
-  const py = spawn('python', ['python/extract_pptx.py', filePath]);
+  const filePath = req.file?.path;
+  if (!filePath) {
+    console.error("[handlePptxUpload] No file path found in request.");
+    return res.status(400).json({ error: "No PPTX file uploaded." });
+  }
 
-  let data = '';
-  py.stdout.on('data', (chunk) => {
-    data += chunk.toString();
-  });
-
-  py.stderr.on('data', (err) => {
-    console.error('Python error:', err.toString());
-  });
-
-py.on('close', (code) => {
   try {
-    const result = JSON.parse(data);
-    if (result.success) {
-      //This commented out is for debugging sa terminal, to show the raw text from file
-      //console.log('[PPTX] Raw Markdown:', result.markdown); //  Add this
+    const result = await extractPptxXml(filePath);
 
-      const cleaned = postprocessMarkdown(result.markdown, 'pptx');
-      res._markdown = cleaned;
-      next();
+    if (!result.success) {
+      console.error("[handlePptxUpload] Extraction failed");
+      return res.status(500).json({ error: "Failed to extract PPTX content." });
     }
- else {
-        res.status(500).json({ error: result.error || 'Failed to extract PPTX.' });
-      }
-    } catch (err) {
-      console.error('JSON parse error:', err);
-      res.status(500).json({ error: 'Invalid response from PPTX extractor.' });
-    }
-  });
+
+    const cleanedMarkdown = postprocessMarkdown(result.markdown, "pptx");
+    res._markdown = cleanedMarkdown;
+    res._slides = result.slides; 
+
+    next();
+  } catch (err) {
+    console.error("[handlePptxUpload] Error processing PPTX:", err);
+    res.status(500).json({ error: "Error processing PPTX file." });
+  }
 };
-
 
 
 export const handleDocxUpload = async (req, res, next) => {
