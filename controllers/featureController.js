@@ -74,25 +74,23 @@ You are an academic assistant helping students prepare for exams.
 
 Task:
 - Read the provided study material.
-- Summarize it into a structured study guide using the exact format below.
-- Do not omit or paraphrase away important concepts.
+- Lightly summarize it into a structured study guide using the exact format below.
+- “Lightly summarize” means shorten sentences and remove redundancy while preserving every concept, definition, and example from the original text.
 - Do not add new explanations or interpretations.
-- Preserve technical terms, definitions, and core information exactly as they appear.
-- The goal is a compressed but faithful summary that students can review quickly.
 
 Output format (strict JSON only):
 
 {
-  "title": "<Concise overall title of the content>",
+  "title": "<Concise overall title of the content in sentence case.>",
   "sections": [
     {
-      "title": "<Section title>",
-      "summary": "<Concise factual summary of this section, preserving all original concepts>",
+      "title": "<Section title in all capital letters>",
+      "summary": "<Lightly condensed restatement of this section that shortens wording but retains all original concepts, definitions, and examples exactly as presented in the source text>",
       "concepts": [
         {
           "term": "<Key term or phrase from the content>",
           "explanation": "<Exact or minimally rephrased explanation from the text>",
-          "example": "<Example only if explicitly provided in the text>"
+          "example": "<Give examples if explicitly provided in the text; include all given examples>"
         }
       ],
       "keyTakeaways": [
@@ -114,39 +112,55 @@ Output format (strict JSON only):
 You are an academic tutor explaining study material to a Grade 10 student.
 
 Task:
-- Read the provided study material.
-- Extract all important concepts, definitions, terms, steps, and examples — do not omit details.
-- Present the material in a way that is accurate and faithful (preserves technical content) while also being clear and approachable for a Grade 10 student.
-- Provide both:
-      - Concise factual summary of each section (preservation).
-      - Plain-language explanation + analogy (translation for easier learning)
-- Do not invent new technical content. Only use what is given.
-- The goal is a complete, student-friendly study guide that is both reliable and easy to review
+1. Read the provided study material carefully.
+2. Extract all key ideas, including important concepts, definitions, terms, examples, steps, and reasoning.
+3. Apply light summarization: simplify and organize the material for easier understanding, but preserve all essential details, accuracy, and technical meaning.
+4. Present the content in a way that is both:
+- Accurate and faithful to the original information (no loss of meaning).
+- Clear, friendly, and relatable for a Grade 10 student (simple words, logical flow).
+5. Each section must include:
+- A clear explanation of the concept.
+- A relatable analogy that connects the concept to something familiar.
+- A mandatory “steps” field that combines:
+ - - AI-generated examples or demonstrations (e.g., a short scenario, paragraph, calculation, or code snippet).
+ - - Real-world connections or practical uses of the concept.
+ - - Reasoning or conceptual breakdowns that help students understand “how” or “why” it works.
+- A concise list of key points summarizing the takeaways.
+6. The goal is to produce a complete, student-friendly study guide that makes the subject easy to learn, remember, and review.
+
+
+Formatting Rules:
+- Keep technical or subject-specific terms but define them clearly.
+- The "steps" field is mandatory and must contain AI-generated examples and real-world or applied insights — not just procedural instructions.
+- "steps" should have 3–6 items blending reasoning, applications, and demonstrations.
+- Keep tone educational, friendly, and easy to follow.
+- Maintain accuracy for all technical or academic content.
+- Keep explanations moderately detailed, not too short or too long.
 
 Output format (strict JSON only):
-
 {
-  "title": "<Concise overall title of the content>",
+  "title": "<Overall title of the material in sentence case.>",
   "sections": [
     {
-      "title": "<Section title>",
-      "explanation": "<Clear, plain-language explanation of the section>",
-      "analogy": "<Analogy or comparison to help students understand>",
+      "title": "<Section title in all capital letters.>",
+      "explanation": "<Detailed but clear explanation of the topic, lightly summarized but comprehensive.>",
+      "analogy": "<Simple, relatable comparison or real-world link that helps students understand.>",
       "steps": [
-        "<Step 1 in a process, if applicable>",
-        "<Step 2>",
-        "<Step 3>",
-        ...
+        "<1. Include reasoning, AI-generated demonstration, or real-world example showing the concept in action.>",
+        "<2. Continue explaining deeper logic or another applied example.>",
+        "<3. Add more insights or applications to reinforce understanding.>",
+        "<...>"
       ],
       "keyPoints": [
-        "<Simple takeaway for this section>",
-        "<Another simple takeaway>",
-        ...
+        "<Main takeaway 1>",
+        "<Main takeaway 2>",
+        "<Main takeaway 3>"
       ]
-    },
-    ...
+    }
   ]
-}     
+}
+
+     
         `;
         break;
     }
@@ -192,51 +206,26 @@ Output format (strict JSON only):
 if (featureType === 'acronym') {
   // Step 0: GPT-based markdown cleaning/restructuring
   const step0SystemPrompt = `
-You are an expert Markdown structuring assistant for educational material.
+You are an academic assistant helping students prepare for exams.
 
-Goal:
-Transform the raw educational text into clean, semantically structured Markdown that clearly separates conceptual groups and subtopics.
+Task:
+- Read the provided study material.
+- Lightly summarize it into a structured study guide using the exact format below.
+- “Lightly summarize” means shorten sentences and remove redundancy while preserving every concept, definition, and example from the original text.
+- Do not add new explanations or interpretations.
+- Separate the terms into distinct sections whenever they represent different or clearly separable concepts.
+- Do not include objectives of the study content material (and the likes)
+- When a topic section includes subcategories (e.g., "Types of X", "Levels of Y", "Forms of Z", treat each subcategory as its own section with its own terms. Do not merge them, even if they share the same parent section/heading.
 
-Instructions:
+Output format:
+Title: <Concise overall title of the content.>
+sections: <Section title 1 based on the overall terms>
+terms: <Key term or phrase from the content>
 
-1. **Hierarchy & Headings**
-   - Use heading levels ("#", "##", "###") to represent conceptual hierarchy.
-   - "#" → Main topic (overall theme of the content)
-   - "##" → Distinct major groups or categories.
-   - "###" → Subtopics or conceptual subsets.
-   - If the text has no explicit headings, infer them logically from context or repeated patterns.
-
-2. **Semantic Grouping**
-   - Group related terms or concepts under meaningful "##" or "###" headings.
-   - If a list of terms shares a common theme, infer a suitable subheading to describe that group.
-   - Do not merge conceptually different categories into one heading.
-   - Preserve order when possible, but prioritize conceptual clarity.
-
-3. **List Formatting**
-   - Represent each discrete concept, item, or definition as a bullet ("-").
-   - If a term is followed by a short explanation (e.g., “Term: definition”), keep it inline after a colon.
-   - If the explanation is long (a full sentence or paragraph), place it below the bullet as plain text.
-
-4. **Clarity Rules**
-   - Remove numbering, inconsistent bullets (•, *, 1.), and unnecessary line breaks.
-   - Keep only educationally relevant content — discard headers/footers, page numbers, table of contents markers, etc.
-   - Maintain blank lines between headings, explanations, and lists for readability.
-
-5. **Inference Rules**
-   - You may create or adjust headings when they improve clarity or reflect an implicit grouping.
-   - Never invent new educational content; only organize what’s already present.
-   - Avoid placing unrelated subtopics under the same heading.
-
-6. **Tone & Fidelity**
-   - Preserve all terms and explanations exactly as written — no paraphrasing or abbreviation.
-   - The output must remain factually identical to the source.
-   - Do not remove any educational content.
-
----
-
-Clean and restructure the following content according to the above rules.
-Do not add commentary or explanations — only Markdown.
-
+sections: <Section title 2 based on the overall terms>
+terms: <Key term or phrase from the content>
+...
+and so on and so forth.
 
 `;
 
@@ -245,7 +234,7 @@ Do not add commentary or explanations — only Markdown.
   const step0Output = await generateWithGPT({
     userPrompt: step0UserPrompt,
     systemPrompt: step0SystemPrompt,
-    temperature: 0.3
+    temperature: 0
   });
 
   console.log("[acronym Step0] Raw GPT Output:\n", step0Output);
@@ -263,179 +252,38 @@ Do not add commentary or explanations — only Markdown.
 
   // Step 1: Extract terms/groups
   const step1SystemPrompt = `
-You are an academic assistant extracting structured terms and concept groups from educational Markdown that will be turned to acronyms sooner.
 
-Goal:
-From the provided Markdown, identify and organize all *educational terms* (key concepts, models, levels, stages, components, etc.) that are relevant for exam memorization or concept recall— the kind students could later use to form acronyms.
+You are an academic assistant generating acronyms from JSON input. Follow these rules strictly:
 
-You need to prepare students for enumeration-type questions. Therefore, you should extract key terms or concepts that are commonly asked in exams and quizzes requiring enumeration.
-As a guide, below are example exam scenarios by subject area:
-1. Science (Biology)
+1. Letter Assignment:
+- For each term, set "letter" = first character of the first word of the term.
+- Preserve all terms exactly as they appear.
+2. Output Structure:
+- Keep all other fields exactly as in the input.
+- Output must be valid JSON with this schema:
+ Do not invent new terms or change existing ones — only organize and create mnemonics.
 
-Question:
-Enumerate the parts of a plant cell.
-
-Expected Answer:
-- Cell wall
-- Cell membrane
-- Cytoplasm
-- Nucleus
-- Chloroplast
-- Vacuole
-- Mitochondria
-
-2. Mathematics
-
-Question:
-Enumerate the properties of real numbers.
-
-Expected Answer:
-- Closure property
-- Commutative property
-- Associative property
-- Distributive property
-- Identity property
-- Inverse property
-
-3. Social Studies / History
-
-Question:
-Enumerate the causes of World War II.
-
-Expected Answer:
-- Treaty of Versailles
-- Rise of Fascism and Nazism
-- Expansionism of Germany, Italy, and Japan
-- Failure of the League of Nations
-- Economic instability from the Great Depression
-
-4. English / Literature
-
-Question:
-Enumerate the elements of a short story.
-
-Expected Answer:
-- Plot
-- Characters
-- Setting
-- Theme
-- Conflict
-- Point of view
-
-5. Computer Science
-
-Question:
-Enumerate the basic components of a computer system.
-
-Expected Answer:
-- Input devices
-- Output devices
-- Central processing unit (CPU)
-- Memory / Storage devices
-- Software
-
-6. Business / Economics
-
-Question:
-Enumerate the factors of production.
-
-Expected Answer:
-- Land
-- Labor
-- Capital
-- Entrepreneurship
-
-7. Health / Nursing
-
-Question:
-Enumerate the stages of infection.
-
-Expected Answer:
-- Incubation period
-- Prodromal stage
-- Illness stage
-- Convalescence stage
-
-8. Religion / Values Education
-
-Question:
-Enumerate the Ten Commandments.
-
-Expected Answer:
-- You shall have no other gods before Me.
-- You shall not make idols.
-- You shall not take the Lord’s name in vain.
-- Remember the Sabbath day.
-- Honor your father and mother.
-- You shall not kill.
-- You shall not commit adultery.
-- You shall not steal.
-- You shall not bear false witness.
-- You shall not covet.
-
-
-NOTE: After groupings, extract the titles in the list of groups and turn them into additional groups in the json.
-Example list of groups:
-{
-  "title": "Theories of Learning",
-  "groups": [
-    {
-      "id": "q1",
-      "title": "Behaviorism",
-      "terms": ["Classical Conditioning", "Operant Conditioning", "Stimulus–Response Model"]
-    },
-    {
-      "id": "q2",
-      "title": "Cognitivism",
-      "terms": ["Information Processing Theory", "Schema Theory", "Cognitive Load Theory"]
-    },
-    {
-      "id": "q3",
-      "title": "Constructivism",
-      "terms": ["Discovery Learning", "Social Constructivism", "Situated Learning"]
-    },
-    {
-      "id": "q4",
-      "title": "Humanism",
-      "terms": ["Maslow’s Hierarchy of Needs", "Rogers’ Self-Directed Learning"]
-    }
-  ]
-}
-
-Expected output to add in the list of groups:
-{
-  "title": "Collective Learning Theories",
-  "groups": [
-    {
-      "id": "q5",
-      "title": "Collective Learning Theories",
-      "terms": ["Behaviorism", "Cognitivism", "Constructivism", "Humanism"]
-    }
-  ]
-}
-
-Important Guidelines:
-- Exclude any empty groups or groups that contain no valid concepts.
-- Remove examples, explanations, table descriptions, or illustrative notes that are not actual terms.
-- Exclude any text fragments containing excessive punctuation, numbering, or special characters.
-- Focus only on concise, clearly definable concepts that are educationally meaningful — specifically, those that students could later use for acronyms or mnemonics.
-- Evaluate whether headings themselves qualify as valid terms; include them only if they do.
-- Include the terms from the sub-topics.
-- Do not invent, infer, or generate new terms, acronyms, or mnemonics — extract only what is explicitly stated in the Markdown source.
-- Group related terms logically based on the overall context of the content.
-- Preserve the natural order of appearance from the original content.
+ Critical Rule:
+- Do not skip, merge, or alter the order of letters.
+- Do not modify terms.
+- Do not reduce repeated letters in the mnemonic.
 
 Return strict JSON only in this format:
+
 {
   "title": "<Concise overall title>",
-  "groups": [
+  "acronymGroups": [
     {
       "id": "q1",
       "title": "<Group title>",
-      "terms": ["Term 1", "Term 2", "Term 3"]
+      "contents": [
+        { "letter": "<First letter>", "word": "<Term 1>" },
+        { "letter": "<First letter>", "word": "<Term 2>" }
+      ]
     }
   ]
 }
+
 
 
 `;
@@ -459,46 +307,52 @@ Return strict JSON only in this format:
     return res.status(500).json({ error: `Invalid GPT Step1 output for acronym` });
   }
 
+    //parsed = step1Parsed; 
   // Step 2: Generate acronyms & mnemonics
   const step2SystemPrompt = `
-You are an academic assistant generating acronyms and mnemonic sentences from JSON input. Follow these rules strictly:
 
-1. Letter Assignment:
-- For each term, set "letter" = first character of the first word of the term.
-- Preserve all terms exactly as they appear.
-2. Mnemonic Sentence (keyPhrase):
-- Must have exactly the same number of words as terms.
-- Each word must start with the corresponding "letter" of that term, in order.
-- Include repeated letters; do not skip, merge, or drop any.
-- The words can relate to the meaning of the terms, but must not use the terms themselves.
-- If you cannot make a meaningful mnemonic for a letter, use a generic placeholder word starting with that letter (e.g., “Lovely” for “L”), but do not skip or omit any letter.
-3. Output Structure:
-- Keep all other fields exactly as in the input.
-- Output must be valid JSON with this schema:
+You are an academic assistant generating mnemonic sentences (keyPhrase) from JSON input.
+Follow these rules strictly and literally:
 
+1. Mnemonic Sentence Construction
+- Create a "keyPhrase" for each "acronymGroup".
+- The "keyPhrase" must contain exactly the same number of words as the number of items in "contents".
+- Each word in "keyPhrase" must:
+- - Start with the same letter as the "letter" field of the corresponding term (in the same order).
+- - Correspond 1:1 to each item in "contents".
+- Do not skip, merge, drop, or add any words.
+- You can make it into up to 2 sentences if words from the "content" are many.
+- If a meaningful word is not possible for a letter, use a generic placeholder word starting with that letter (e.g., “Lovely” for “L”).
+- The mnemonic can be creative or loosely meaningful, but must not repeat or reuse the original terms.
 
+2. Output Schema
+- Return strictly valid JSON, following this exact schema:
 {
   "title": "<Concise overall title>",
   "acronymGroups": [
     {
       "id": "q1",
-      "keyPhrase": "<Mnemonic sentence>",
+      "keyPhrase": "<Mnemonic sentence with exactly N words, matching contents length>",
       "title": "<Group title>",
       "contents": [
         { "letter": "<First letter>", "word": "<Term 1>" },
-        { "letter": "<First letter>", "word": "<Term 2>" }
+        { "letter": "<First letter>", "word": "<Term 2>" },
+        { "letter": "<First letter>", "word": "<Term 3>" }
       ]
     }
   ]
 }
 
-4. Critical Rule:
-- Do not skip, merge, or alter the order of letters.
-- Do not modify terms.
-- Do not reduce repeated letters in the mnemonic.
+3. Validation Rule (Critical)
 
-Return only valid JSON.
+Before output:
+- Count the number of entries in "contents".
+- Ensure "keyPhrase" has the same number of words (no fewer, no more).
+- If the count doesn’t match, revise "keyPhrase" automatically before output.
+
 `;
+
+
 
   const step2UserPrompt = `Here is the extracted data:\n---\n${JSON.stringify(step1Parsed, null, 2)}\n---`;
 
@@ -520,126 +374,126 @@ Return only valid JSON.
     return res.status(500).json({ error: `Invalid GPT Step2 output for acronym` });
   }
 
-// Comment this out to enable Step 3 validation (09/22)
-  //parsed = step2Parsed;
-// 
+//Comment this out to enable Step 3 validation (09/22)
+ parsed = step2Parsed;
+
 
 //Uncomment below to enable Step 3 validation if you want to include step 3 again. (09/22)
 // Step 3: Validation & Finalization
-  const step3SystemPrompt = `
-You are a validator and corrector for acronym mnemonics. Follow these rules strictly:
+//   const step3SystemPrompt = `
+// You are a validator and corrector for acronym mnemonics. Follow these rules strictly:
 
-1. Letter Accuracy:
-- Each "letter" field must exactly match the first character of the first word in the corresponding entry; if it’s a compound word, only use the first word for reference.
-- Correct any mismatches; do not remove or change any terms.
+// 1. Letter Accuracy:
+// - Each "letter" field must exactly match the first character of the first word in the corresponding entry; if it’s a compound word, only use the first word for reference.
+// - Correct any mismatches; do not remove or change any terms.
 
-2. Mnemonic Sentence (keyPhrase) Accuracy:
-- The "keyPhrase" must have exactly one word per letter, in order. For compound words, count only the first word.
-- Each word in the sentence must start with the corresponding "letter", including repeated letters.
-- Do not skip, merge, or omit any letters.
-- The words can relate to the meaning of the terms but must not repeat the terms themselves.
-- If a meaningful word cannot be found for a letter, use a generic placeholder starting with that letter.
+// 2. Mnemonic Sentence (keyPhrase) Accuracy:
+// - The "keyPhrase" must have exactly one word per letter, in order. For compound words, count only the first word.
+// - Each word in the sentence must start with the corresponding "letter", including repeated letters.
+// - Do not skip, merge, or omit any letters.
+// - The words can relate to the meaning of the terms but must not repeat the terms themselves.
+// - If a meaningful word cannot be found for a letter, use a generic placeholder starting with that letter.
 
-3. Preserve Terms and Order:
-- Do not change the "word" fields or their order.
-- Only correct the "letter" and "keyPhrase" fields as needed.
-- If a field in "letter" matches the "keyPhase" field, leave it unchanged (preserve as is).
+// 3. Preserve Terms and Order:
+// - Do not change the "word" fields or their order.
+// - Only correct the "letter" and "keyPhrase" fields as needed.
+// - If a field in "letter" matches the "keyPhase" field, leave it unchanged (preserve as is).
 
-4. Output Format:
-- Return only valid JSON with the exact same schema as input.
-- Maintain all other fields exactly as in the input.
+// 4. Output Format:
+// - Return only valid JSON with the exact same schema as input.
+// - Maintain all other fields exactly as in the input.
 
-Example Correction #1
-Input (problematic):
-{
-  "keyPhrase": "Smart Tech Operates Rapidly",
-  "title": "Software Components",
-  "contents": [
-    { "letter": "S", "word": "Server" },
-    { "letter": "T", "word": "Thread Pool" },
-    { "letter": "O", "word": "Operating System" },
-    { "letter": "R", "word": "Router" },
-    { "letter": "R", "word": "Registry" }
-  ]
-}
-Problem:
-- The original keyPhrase has only one “R” word (Rapidly) but there are two “R” letters in the contents.
+// Example Correction #1
+// Input (problematic):
+// {
+//   "keyPhrase": "Smart Tech Operates Rapidly",
+//   "title": "Software Components",
+//   "contents": [
+//     { "letter": "S", "word": "Server" },
+//     { "letter": "T", "word": "Thread Pool" },
+//     { "letter": "O", "word": "Operating System" },
+//     { "letter": "R", "word": "Router" },
+//     { "letter": "R", "word": "Registry" }
+//   ]
+// }
+// Problem:
+// - The original keyPhrase has only one “R” word (Rapidly) but there are two “R” letters in the contents.
 
-Corrected Output:
-{
-  "keyPhrase": "Smart Tech Operates Rapidly Reliably",
-  "title": "Software Components",
-  "contents": [
-    { "letter": "S", "word": "Server" },
-    { "letter": "T", "word": "Thread Pool" },
-    { "letter": "O", "word": "Operating System" },
-    { "letter": "R", "word": "Router" },
-    { "letter": "R", "word": "Registry" }
-  ]
-}
+// Corrected Output:
+// {
+//   "keyPhrase": "Smart Tech Operates Rapidly Reliably",
+//   "title": "Software Components",
+//   "contents": [
+//     { "letter": "S", "word": "Server" },
+//     { "letter": "T", "word": "Thread Pool" },
+//     { "letter": "O", "word": "Operating System" },
+//     { "letter": "R", "word": "Router" },
+//     { "letter": "R", "word": "Registry" }
+//   ]
+// }
 
-Explanation of the correction in example correct #1:
-- Each word in keyPhrase now corresponds exactly to the letter of the term.
-- Both "R" entries are preserved and reflected in the mnemonic.
-- Order of terms is maintained.
-- No letters or terms are skipped, merged, or altered.
+// Explanation of the correction in example correct #1:
+// - Each word in keyPhrase now corresponds exactly to the letter of the term.
+// - Both "R" entries are preserved and reflected in the mnemonic.
+// - Order of terms is maintained.
+// - No letters or terms are skipped, merged, or altered.
 
-Example Correction #2
-Input (problematic):
-{
-  "keyPhrase": "Silly Ants Playfully Paint In Colorful Caves",
-  "title": "Requirements of a Professional",
-  "contents": [
-    { "letter": "S", "word": "Specialized knowledge" },
-    { "letter": "A", "word": "Autonomy" },
-    { "letter": "P", "word": "Professional code" },
-    { "letter": "P", "word": "Personal code" },
-    { "letter": "I", "word": "Institutional code" },
-    { "letter": "C", "word": "Community code" }
-  ]
-}
+// Example Correction #2
+// Input (problematic):
+// {
+//   "keyPhrase": "Silly Ants Playfully Paint In Colorful Caves",
+//   "title": "Requirements of a Professional",
+//   "contents": [
+//     { "letter": "S", "word": "Specialized knowledge" },
+//     { "letter": "A", "word": "Autonomy" },
+//     { "letter": "P", "word": "Professional code" },
+//     { "letter": "P", "word": "Personal code" },
+//     { "letter": "I", "word": "Institutional code" },
+//     { "letter": "C", "word": "Community code" }
+//   ]
+// }
 
-Corrected Output:
-{
-  "keyPhrase": "Silly Ants Playfully Paint In Colorful",
-  "title": "Requirements of a Professional",
-  "contents": [
-    { "letter": "S", "word": "Specialized knowledge" },
-    { "letter": "A", "word": "Autonomy" },
-    { "letter": "P", "word": "Professional code" },
-    { "letter": "P", "word": "Personal code" },
-    { "letter": "I", "word": "Institutional code" },
-    { "letter": "C", "word": "Community code" }
-  ]
-}
+// Corrected Output:
+// {
+//   "keyPhrase": "Silly Ants Playfully Paint In Colorful",
+//   "title": "Requirements of a Professional",
+//   "contents": [
+//     { "letter": "S", "word": "Specialized knowledge" },
+//     { "letter": "A", "word": "Autonomy" },
+//     { "letter": "P", "word": "Professional code" },
+//     { "letter": "P", "word": "Personal code" },
+//     { "letter": "I", "word": "Institutional code" },
+//     { "letter": "C", "word": "Community code" }
+//   ]
+// }
 
-Explanation of the correction in example correction #2:
-- Each word in keyPhrase now corresponds exactly to the first letter of each term in contents, in order.
-- The overall order of terms remains consistent with the original.
-- No letters or terms were omitted, merged, or altered; only the extra word (“Caves”) was removed to ensure a one-to-one alignment.
+// Explanation of the correction in example correction #2:
+// - Each word in keyPhrase now corresponds exactly to the first letter of each term in contents, in order.
+// - The overall order of terms remains consistent with the original.
+// - No letters or terms were omitted, merged, or altered; only the extra word (“Caves”) was removed to ensure a one-to-one alignment.
 
-`;
+// `;
 
-  const step3UserPrompt = `
-Here is the generated JSON from Step 2:
-${JSON.stringify(step2Parsed, null, 2)}
-`;
+//   const step3UserPrompt = `
+// Here is the generated JSON from Step 2:
+// ${JSON.stringify(step2Parsed, null, 2)}
+// `;
 
-  const step3Output = await generateWithGPT({
-    userPrompt: step3UserPrompt,
-    systemPrompt: step3SystemPrompt,
-    temperature: 0
-  });
+//   const step3Output = await generateWithGPT({
+//     userPrompt: step3UserPrompt,
+//     systemPrompt: step3SystemPrompt,
+//     temperature: 0
+//   });
 
-  console.log("[acronym Step3] Raw GPT Output:\n", step3Output);
+//   console.log("[acronym Step3] Raw GPT Output:\n", step3Output);
 
-  try {
-    parsed = JSON.parse(step3Output.replace(/```json\s*/i, '').replace(/```$/, '').trim());
-  } catch (err) {
-    console.error(`[acronym Step3] Failed to parse JSON:`, err);
-    console.error(`[acronym Step3] Raw Output:\n`, step3Output);
-    parsed = step2Parsed; // fallback if validation fails
-  }
+//   try {
+//     parsed = JSON.parse(step3Output.replace(/```json\s*/i, '').replace(/```$/, '').trim());
+//   } catch (err) {
+//     console.error(`[acronym Step3] Failed to parse JSON:`, err);
+//     console.error(`[acronym Step3] Raw Output:\n`, step3Output);
+//     parsed = step2Parsed; // fallback if validation fails
+//   }
 
 
 
